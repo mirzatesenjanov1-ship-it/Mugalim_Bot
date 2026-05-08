@@ -17,7 +17,7 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
-# Телеграм Боттун коду
+# Телеграм Боттун коду (Жаңы токен менен)
 TOKEN = "8747194233:AAE6SfJHAKuN0lciudl80FUBNrtyn8eIvFM"
 bot = telebot.TeleBot(TOKEN)
 
