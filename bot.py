@@ -5,7 +5,11 @@ TOKEN = "8747194233:AAE6SfJHAKuN0lciudl80FUBNrtyn8eIvFM"
 
 bot = telebot.TeleBot(TOKEN)
 
-# Деңгээлдердин маалыматы жана шилтемелери
+# Шилтемелер
+SITE_URL = "https://mirzatesenjanov1-ship-it.github.io/Mugalim_AI"
+BOOSTY_URL = "https://boosty.to/astrophysica"
+
+# Деңгээлдердин маалыматы
 levels_info = {
     "ru": [
         ("1️⃣ Механика (50 ₽)", "https://boosty.to/astrophysica/purchase/3915502?ssource=DIRECT&share=subscription_link"),
@@ -41,16 +45,21 @@ def start(message):
 @bot.callback_query_handler(func=lambda call: call.data.startswith("lang_"))
 def main_menu(call):
     lang = call.data.split("_")[1]
-    markup = InlineKeyboardMarkup()
-    btn_text = "📚 Перейти к уровням" if lang == "ru" else "📚 Деңгээлдерге өтүү"
-    markup.add(InlineKeyboardButton(btn_text, callback_data=f"show_levels_{lang}"))
+    markup = InlineKeyboardMarkup(row_width=1)
+    
+    # Негизги баскычтар
+    btn_levels = "📚 Уровни подписки" if lang == "ru" else "📚 Жазылуу деңгээлдери"
+    btn_site = "🌐 Перейти на сайт Mugalim.AI" if lang == "ru" else "🌐 Mugalim.AI сайтына өтүү"
+    
+    markup.add(
+        InlineKeyboardButton(btn_site, url=SITE_URL),
+        InlineKeyboardButton(btn_levels, callback_data=f"show_levels_{lang}")
+    )
     
     welcome = (
-        "👋 Добро пожаловать! Выберите интересующий вас раздел физики. "
-        "Каждый уровень содержит теорию, задачи и видеоразборы."
+        "👋 Добро пожаловать! Выберите нужный раздел. На сайте доступны бесплатные материалы, а на Boosty — углубленные курсы."
         if lang == "ru" else
-        "👋 Кош келиңиз! Сизди кызыктырган физика бөлүмүн тандаңыз. "
-        "Ар бир деңгээл теорияны, эсептерди жана видео-чыгарылыштарды камтыйт."
+        "👋 Кош келиңиз! Керектүү бөлүмдү тандаңыз. Сайтта акысыз материалдар, ал эми Boosty-де тереңдетилген курстар бар."
     )
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=welcome, reply_markup=markup)
 
@@ -62,11 +71,11 @@ def list_levels(call):
     for name, link in levels_info[lang]:
         markup.add(InlineKeyboardButton(name, url=link))
     
-    back_btn = "⬅️ Назад" if lang == "ru" else "⬅️ Артка"
+    back_btn = "⬅️ Назад в меню" if lang == "ru" else "⬅️ Менюга кайтуу"
     markup.add(InlineKeyboardButton(back_btn, callback_data=f"lang_{lang}"))
     
     text = "🚀 Выберите уровень для оформления подписки:" if lang == "ru" else "🚀 Жазылуу үчүн деңгээлди тандаңыз:"
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text, reply_markup=markup)
 
-print("🚀 БОТ ЗАПУЩЕН И ГОТОВ К ПРОДАЖАМ")
-bot.polling()
+print("🚀 БОТ МЕНЮ ЖАНА САЙТ МЕНЕН ИШТӨӨГӨ ДАЯР")
+bot.polling(none_stop=True)
