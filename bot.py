@@ -1,15 +1,28 @@
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from flask import Flask
+from threading import Thread
 
+# 1. Flask Веб-сервер (Render үчүн)
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Бот иштеп жатат!"
+
+def run():
+    app.run(host='0.0.0.0', port=8080)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+
+# 2. Телеграм Боттун коду
 TOKEN = "8747194233:AAE6SfJHAKuN0lciudl80FUBNrtyn8eIvFM"
-
 bot = telebot.TeleBot(TOKEN)
 
-# Шилтемелер
 SITE_URL = "https://mirzatesenjanov1-ship-it.github.io/Mugalim_AI"
-BOOSTY_URL = "https://boosty.to/astrophysica"
 
-# Деңгээлдердин маалыматы
 levels_info = {
     "ru": [
         ("1️⃣ Механика (50 ₽)", "https://boosty.to/astrophysica/purchase/3915502?ssource=DIRECT&share=subscription_link"),
@@ -46,36 +59,26 @@ def start(message):
 def main_menu(call):
     lang = call.data.split("_")[1]
     markup = InlineKeyboardMarkup(row_width=1)
-    
-    # Негизги баскычтар
     btn_levels = "📚 Уровни подписки" if lang == "ru" else "📚 Жазылуу деңгээлдери"
     btn_site = "🌐 Перейти на сайт Mugalim.AI" if lang == "ru" else "🌐 Mugalim.AI сайтына өтүү"
-    
-    markup.add(
-        InlineKeyboardButton(btn_site, url=SITE_URL),
-        InlineKeyboardButton(btn_levels, callback_data=f"show_levels_{lang}")
-    )
-    
-    welcome = (
-        "👋 Добро пожаловать! Выберите нужный раздел. На сайте доступны бесплатные материалы, а на Boosty — углубленные курсы."
-        if lang == "ru" else
-        "👋 Кош келиңиз! Керектүү бөлүмдү тандаңыз. Сайтта акысыз материалдар, ал эми Boosty-де тереңдетилген курстар бар."
-    )
+    markup.add(InlineKeyboardButton(btn_site, url=SITE_URL),
+               InlineKeyboardButton(btn_levels, callback_data=f"show_levels_{lang}"))
+    welcome = ("👋 Добро пожаловать!" if lang == "ru" else "👋 Кош келиңиз!")
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=welcome, reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("show_levels_"))
 def list_levels(call):
     lang = call.data.split("_")[-1]
     markup = InlineKeyboardMarkup()
-    
     for name, link in levels_info[lang]:
         markup.add(InlineKeyboardButton(name, url=link))
-    
-    back_btn = "⬅️ Назад в меню" if lang == "ru" else "⬅️ Менюга кайтуу"
+    back_btn = "⬅️ Назад" if lang == "ru" else "⬅️ Артка"
     markup.add(InlineKeyboardButton(back_btn, callback_data=f"lang_{lang}"))
-    
-    text = "🚀 Выберите уровень для оформления подписки:" if lang == "ru" else "🚀 Жазылуу үчүн деңгээлди тандаңыз:"
+    text = "🚀 Выберите уровень:" if lang == "ru" else "🚀 Деңгээлди тандаңыз:"
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=text, reply_markup=markup)
 
-print("🚀 БОТ МЕНЮ ЖАНА САЙТ МЕНЕН ИШТӨӨГӨ ДАЯР")
-bot.polling(none_stop=True)
+# Ботту иштетүү
+if __name__ == "__main__":
+    keep_alive() # Веб-серверди иштетет
+    print("🚀 Бот ишке кирди...")
+    bot.polling(none_stop=True)
